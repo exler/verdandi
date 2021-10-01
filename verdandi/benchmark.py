@@ -1,28 +1,28 @@
 class Benchmark:
-    prefix_benchmark: str = "bench_"
-
     def setUp(self):
-        """Hook method for setting up the test before running it"""
+        """Hook method for setting up the bench before running it"""
         pass
 
     def tearDown(self):
-        """Hook method for deconstructing the test after running it"""
+        """Hook method for deconstructing the bench after running it"""
+        pass
+
+    def setUpIter(self):
+        """Hook method for setting up the bench iteration before running it"""
+        pass
+
+    def tearDownIter(self):
+        """Hook method for deconstructing the bench iteration after running it"""
         pass
 
     @classmethod
     def setUpClass(cls):
-        """Hook method for setting up class fixture before running tests in the class."""
+        """Hook method for setting up class before running all benches in the class"""
         pass
 
     @classmethod
     def tearDownClass(cls):
-        """Hook method for deconstructing the class fixture after running all tests in the class."""
-        pass
-
-    def discover(self) -> None:
-        """
-        Get all functions that begin with `prefix_benchmark`
-        """
+        """Hook method for deconstructing the class after running all benches in the class"""
         pass
 
     def run(self) -> None:

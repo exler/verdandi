@@ -71,7 +71,8 @@ class BenchmarkProgram:
             self.bench = self.loader.load_tests_from_module(self.module)
 
     def run_benchmarks(self) -> None:
-        pass
+        bench_runner = self.bench_runner()
+        bench_runner.run(self.bench)
 
 
 main = BenchmarkProgram
