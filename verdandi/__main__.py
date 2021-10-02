@@ -2,6 +2,8 @@
 Verdandi command-line entry point
 """
 
+
 from .main import main
 
-main(module=None)
+if __name__ == "__main__":
+    main()

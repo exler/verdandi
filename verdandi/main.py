@@ -1,5 +1,4 @@
 import argparse
-import importlib
 import sys
 from typing import List, Optional, Type
 
@@ -10,69 +9,46 @@ from verdandi.runner import BenchmarkRunner
 class BenchmarkProgram:
     def __init__(
         self,
-        module: str = "__main__",
         argv: Optional[List[str]] = None,
         bench_loader: Type[BenchmarkLoader] = BenchmarkLoader,
         bench_runner: Type[BenchmarkRunner] = BenchmarkRunner,
-        catch_break: bool = False,
     ):
-        if isinstance(module, str):
-            self.module = importlib.import_module(module)
-        else:
-            self.module = module
-
         if argv is None:
             argv = sys.argv
 
         self.bench_loader = bench_loader
         self.bench_runner = bench_runner
 
-        self.catch_break = catch_break
-
         self.parse_args(argv)
         self.run_benchmarks()
 
     def parse_args(self, argv: List[str]) -> None:
-        self._init_arg_parsers()
+        parser = self._get_arg_parser()
 
-        if self.module is None:
-            if len(argv) > 1 and argv[1].lower() == "discover":
-                self._do_discovery(argv[2:])
+        parser.parse_args(argv[1:], self)
 
-    def _init_arg_parsers(self) -> None:
-        self._main_arg_parser = self._get_main_arg_parser()
-        self._discovery_arg_parser = self._get_discovery_arg_parser()
+        self._do_discovery()
 
-    def _get_main_arg_parser(self) -> argparse.ArgumentParser:
+    def _get_arg_parser(self):
         parser = argparse.ArgumentParser()
-        parser.add_argument()
+        parser.add_argument(
+            "-s", "--start-directory", dest="start_dir", help="Directory to start the discovery at (defaults to '.')"
+        )
+        parser.add_argument(
+            "-p", "--pattern", dest="pattern", help="Filename pattern used in discovery (defaults to 'bench*.py')"
+        )
 
         return parser
 
-    def _get_discovery_arg_parser(self) -> argparse.ArgumentParser:
-        parser = argparse.ArgumentParser()
-        parser.add_argument()
-
-        return parser
-
-    def _do_discovery(self, argv: List[str]) -> None:
-        self.start = "."
+    def _do_discovery(self) -> None:
+        self.start_dir = "."
         self.pattern = "bench*.py"
 
-        if argv is not None:
-            self._discovery_arg_parser.parse_args(argv, self)
-
-        self.create_benches(from_discovery=True)
-
-    def create_benches(self, from_discovery: bool = False) -> None:
-        if from_discovery:
-            self.bench = self.loader.discover(self.start, self.pattern)
-        else:
-            self.bench = self.loader.load_tests_from_module(self.module)
+        self.bench_loader().discover(start_dir=self.start_dir, pattern=self.pattern)
 
     def run_benchmarks(self) -> None:
-        bench_runner = self.bench_runner()
-        bench_runner.run(self.bench)
+        # bench_runner = self.bench_runner()
+        pass
 
 
 main = BenchmarkProgram
