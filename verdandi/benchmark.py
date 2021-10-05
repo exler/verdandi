@@ -1,3 +1,7 @@
+import inspect
+from typing import Callable, List
+
+
 class Benchmark:
     def setUp(self):
         """Hook method for setting up the bench before running it"""
@@ -25,5 +29,11 @@ class Benchmark:
         """Hook method for deconstructing the class after running all benches in the class"""
         pass
 
-    def run(self) -> None:
-        pass
+    def collect_bench_methods(self, method_prefix: str = "bench_") -> List[Callable[..., None]]:
+        bench_methods: List[Benchmark] = []
+
+        for name, attr in inspect.getmembers(self):
+            if name.startswith(method_prefix):
+                bench_methods.append(attr)
+
+        return bench_methods

@@ -68,8 +68,9 @@ class BenchmarkProgram:
             self.benches = self.bench_loader.load_benches_from_module(self.module)
 
     def run_benchmarks(self) -> None:
-        # bench_runner = self.bench_runner()
-        print(self.benches)
+        for bench in self.benches:
+            result = self.bench_runner.run(bench)
+            print(result)
 
 
 main = BenchmarkProgram
