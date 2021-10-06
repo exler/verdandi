@@ -1,5 +1,6 @@
 import argparse
 import importlib
+import os
 import sys
 import types
 from typing import List, Optional, Type, Union
@@ -7,7 +8,7 @@ from typing import List, Optional, Type, Union
 from verdandi.benchmark import Benchmark
 from verdandi.loader import BenchmarkLoader
 from verdandi.runner import BenchmarkRunner
-from verdandi.utils import convert_name
+from verdandi.utils import convert_name, print_header
 
 
 class BenchmarkProgram:
@@ -26,11 +27,15 @@ class BenchmarkProgram:
         if argv is None:
             argv = sys.argv
 
-        self.bench_loader = bench_loader()
-        self.bench_runner = bench_runner()
+        self.bench_loader = bench_loader
+        self.bench_runner = bench_runner
 
         self.benches: List[Type[Benchmark]] = []
         self.parse_args(argv)
+
+        print_header("Benchmark session started")
+        print(f"Root directory: {os.getcwd()}")
+
         self.do_discovery()
         self.run_benchmarks()
 
@@ -41,6 +46,13 @@ class BenchmarkProgram:
     def _get_arg_parser(self):
         parser = argparse.ArgumentParser()
         parser.add_argument("benches", nargs="*", help="List of bench modules or files")
+        parser.add_argument(
+            "-o",
+            "--show-stdout",
+            dest="show_stdout",
+            help="Show captured stdout after benchmarks are completed",
+            action="store_true",
+        )
         parser.add_argument(
             "-s",
             "--start-directory",
@@ -59,18 +71,24 @@ class BenchmarkProgram:
         return parser
 
     def do_discovery(self) -> None:
+        loader = self.bench_loader()
+
         if not self.benches:
-            self.benches = self.bench_loader.discover(start_dir=self.start_dir, pattern=self.pattern)
+            self.benches = loader.discover(start_dir=self.start_dir, pattern=self.pattern)
         elif self.benches:
             bench_names = [convert_name(name) for name in self.benches]
-            self.benches = [self.bench_loader.load_benches_from_name(name, self.module) for name in bench_names]
+            self.benches = [loader.load_benches_from_name(name, self.module) for name in bench_names]
         else:
-            self.benches = self.bench_loader.load_benches_from_module(self.module)
+            self.benches = loader.load_benches_from_module(self.module)
+
+        print(f"Collected {len(self.benches)} item{'s'[:len(self.benches)^1]}")
 
     def run_benchmarks(self) -> None:
-        for bench in self.benches:
-            result = self.bench_runner.run(bench)
-            print(result)
+        runner = self.bench_runner(show_stdout=self.show_stdout)
+
+        print()  # Use whitespace as separator here
+
+        runner.run(self.benches)
 
 
 main = BenchmarkProgram
