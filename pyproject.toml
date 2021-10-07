@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "verdandi"
+version = "0.1.0"
+authors = ["Kamil Marut <kamil@kamilmarut.com>"]
+description = "Benchmarking framework"
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/exler/CILISSA"
+repository = "https://github.com/exler/CILISSA"
+keywords = ["benchmark", "performance"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Topic :: System :: Benchmark",
+    "Topic :: Software Development :: Testing",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[tool.poetry.dependencies]
+python = ">=3.6"
+
+[tool.poetry.dev-dependencies]
+black = "^21.6b0"
+flake8 = "^3.9.2"
+bandit = "^1.7.0"
+isort = "^5.8.0"
+
+[tool.isort]
+profile = "black"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
