@@ -16,7 +16,7 @@ class BenchmarkLoader:
     def load_benches_from_module(self, module: types.ModuleType) -> List[Type[Benchmark]]:
         benches: List[Type[Benchmark]] = []
 
-        for name, obj in inspect.getmembers(module):
+        for _, obj in inspect.getmembers(module):
             if isinstance(obj, type) and issubclass(obj, Benchmark) and obj is not Benchmark:
                 benches.append(obj)
 
@@ -36,7 +36,7 @@ class BenchmarkLoader:
 
         return self.load_benches_from_module(module)
 
-    def discover(self, start_dir: Union[Path, str], pattern="bench*.py") -> List[Type[Benchmark]]:
+    def discover(self, start_dir: Union[Path, str], pattern="bench_*.py") -> List[Type[Benchmark]]:
         """
         Find and return all benchmarks from the specified start directory,
         recursing into subsequent directories.

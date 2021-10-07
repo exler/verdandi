@@ -14,7 +14,7 @@ from verdandi.utils import convert_name, print_header
 class BenchmarkProgram:
     def __init__(
         self,
-        module: Union[str, types.ModuleType] = "__main__",
+        module: Optional[Union[str, types.ModuleType]] = None,
         argv: Optional[List[str]] = None,
         bench_loader: Type[BenchmarkLoader] = BenchmarkLoader,
         bench_runner: Type[BenchmarkRunner] = BenchmarkRunner,

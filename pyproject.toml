@@ -1,12 +1,11 @@
 [tool.poetry]
 name = "verdandi"
-version = "0.1.0"
+version = "0.1.2"
 authors = ["Kamil Marut <kamil@kamilmarut.com>"]
 description = "Benchmarking framework"
 license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/exler/CILISSA"
-repository = "https://github.com/exler/CILISSA"
+repository = "https://github.com/exler/verdandi"
 keywords = ["benchmark", "performance"]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -17,6 +16,12 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/exler/verdandi/issues"
+
+[tool.poetry.scripts]
+verdandi = "verdandi.main:main"
 
 [tool.poetry.dependencies]
 python = ">=3.6"
