@@ -4,7 +4,7 @@ import os
 import types
 from fnmatch import fnmatch
 from pathlib import Path
-from typing import List, Optional, Type, Union
+from typing import List, Type, Union
 
 from verdandi.benchmark import Benchmark
 from verdandi.utils import convert_name
@@ -22,17 +22,12 @@ class BenchmarkLoader:
 
         return benches
 
-    def load_benches_from_name(self, name: str, module: Optional[types.ModuleType] = None) -> List[Type[Benchmark]]:
-        parts = name.split(".")
-        if module is None:
-            parts_copy = parts[:]
-            while parts_copy:
-                try:
-                    module_name = ".".join(parts_copy)
-                    module = importlib.import_module(module_name)
-                    break
-                except ImportError:
-                    parts_copy.pop()
+    def load_benches_from_name(self, name: str) -> List[Type[Benchmark]]:
+        try:
+            module = importlib.import_module(name)
+        except (TypeError, ImportError):
+            # Dotted filename or no such module
+            return []
 
         return self.load_benches_from_module(module)
 

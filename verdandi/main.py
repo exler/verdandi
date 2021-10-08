@@ -77,7 +77,7 @@ class BenchmarkProgram:
             self.benches = loader.discover(start_dir=self.start_dir, pattern=self.pattern)
         elif self.benches:
             bench_names = [convert_name(name) for name in self.benches]
-            self.benches = [loader.load_benches_from_name(name, self.module) for name in bench_names]
+            self.benches = [loader.load_benches_from_name(name) for name in bench_names]
         else:
             self.benches = loader.load_benches_from_module(self.module)
 
