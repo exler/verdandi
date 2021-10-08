@@ -91,4 +91,6 @@ class BenchmarkProgram:
         runner.run(self.benches)
 
 
-main = BenchmarkProgram
+def main(*args, **kwargs):
+    """Entry point for usage in scripts"""
+    BenchmarkProgram(*args, **kwargs)

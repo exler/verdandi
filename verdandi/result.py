@@ -26,7 +26,9 @@ class BenchmarkResult:
     stdout: List[List[str]]
 
     def print_result(self) -> None:
-        print(f"{self.name} - duration (sec): {self.duration_sec}, memory allocated (bytes): {self.memory_diff}")
+        print(
+            f"{self.name} - duration (sec): {round(self.duration_sec, 4)}, memory allocated (bytes): {self.memory_diff}"
+        )
 
     def print_stdout(self) -> None:
         for iter_index, iter_output in enumerate(self.stdout):
