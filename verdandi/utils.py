@@ -7,7 +7,10 @@ def convert_name(name: str) -> str:
     Converts a system path to importable name
     """
     if os.path.isfile(name) and name.lower().endswith(".py"):
-        return name[:-3].replace("./", "").replace("\\", ".").replace("/", ".")
+        name = name[:-3].replace("./", "").replace("\\", ".").replace("/", ".")
+        while name.startswith("."):
+            name = name[1:]
+        return name
     return name
 
 

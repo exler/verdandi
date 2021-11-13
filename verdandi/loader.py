@@ -11,8 +11,6 @@ from verdandi.utils import convert_name
 
 
 class BenchmarkLoader:
-    method_prefix = "bench_"
-
     def load_benches_from_module(self, module: types.ModuleType) -> List[Type[Benchmark]]:
         benches: List[Type[Benchmark]] = []
 
