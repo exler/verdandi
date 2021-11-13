@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="docs/logo.png" width="192">
+    <img src="https://raw.githubusercontent.com/exler/verdandi/main/docs/logo.png" width="192">
 </p>
 <p align="center">
     Class-based benchmarking framework with <code>unittest</code>-style behavior 
