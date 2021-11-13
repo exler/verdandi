@@ -10,7 +10,7 @@
 
 ## Overview
 
-Verdandi is a small library trying to provide class-based benchmarking functionality with similar interface to Python's [unittest](https://docs.python.org/3/library/unittest.html).
+Verdandi is a small library providing class-based benchmarking functionality with similar interface to Python's [unittest](https://docs.python.org/3/library/unittest.html).
 
 ## Requirements
 
