@@ -3,7 +3,7 @@ Verdandi command-line entry point
 """
 
 
-from .main import main
+from verdandi import main
 
 if __name__ == "__main__":
     main(module=None)
