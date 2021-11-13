@@ -81,7 +81,7 @@ class BenchmarkProgram:
         else:
             self.benches = loader.load_benches_from_module(self.module)
 
-        print(f"Collected {len(self.benches)} item{'s'[:len(self.benches)^1]}")
+        print(f"Collected {len(self.benches)} benchmark{'s'[:len(self.benches)^1]}")
 
     def run_benchmarks(self) -> None:
         runner = self.bench_runner(show_stdout=self.show_stdout)

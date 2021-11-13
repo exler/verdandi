@@ -53,8 +53,6 @@ class BenchmarkRunner:
 
         results: List[BenchmarkResult] = []
 
-        tracemalloc.start()
-
         benchmark.setUpClass()
 
         for method in methods:
@@ -92,6 +90,8 @@ class BenchmarkRunner:
         return results
 
     def measure(self, func: Callable[..., Any]) -> BenchmarkResult:
+        tracemalloc.start()
+
         start_time = perf_counter()
         start_snapshot = tracemalloc.take_snapshot()
 
@@ -102,6 +102,8 @@ class BenchmarkRunner:
 
         time_taken = stop_time - start_time
         memory_diff = stop_snapshot.compare_to(start_snapshot, "lineno")
+
+        tracemalloc.stop()
 
         stats = {"time": time_taken, "memory": memory_diff}
 
