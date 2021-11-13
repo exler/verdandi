@@ -8,7 +8,7 @@ from typing import Any, Callable, Dict, List
 
 from verdandi.benchmark import Benchmark
 from verdandi.result import BenchmarkResult, ResultType
-from verdandi.utils import print_header
+from verdandi.utils import flatten, print_header
 
 
 class StreamCapture(UserList):
@@ -37,7 +37,7 @@ class BenchmarkRunner:
     def run(self, benchmarks: List[Benchmark]) -> None:
         results: List[List[BenchmarkResult]] = []
 
-        for benchmark in benchmarks:
+        for benchmark in flatten(benchmarks):
             result = self.run_class(benchmark)
             results.append(result)
 
@@ -52,8 +52,6 @@ class BenchmarkRunner:
         methods = benchmark.collect_bench_methods()
 
         results: List[BenchmarkResult] = []
-
-        tracemalloc.start()
 
         benchmark.setUpClass()
 
@@ -92,6 +90,8 @@ class BenchmarkRunner:
         return results
 
     def measure(self, func: Callable[..., Any]) -> BenchmarkResult:
+        tracemalloc.start()
+
         start_time = perf_counter()
         start_snapshot = tracemalloc.take_snapshot()
 
@@ -102,6 +102,8 @@ class BenchmarkRunner:
 
         time_taken = stop_time - start_time
         memory_diff = stop_snapshot.compare_to(start_snapshot, "lineno")
+
+        tracemalloc.stop()
 
         stats = {"time": time_taken, "memory": memory_diff}
 

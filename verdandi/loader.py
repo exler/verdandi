@@ -1,5 +1,6 @@
 import importlib
 import inspect
+import logging
 import os
 import types
 from fnmatch import fnmatch
@@ -7,12 +8,10 @@ from pathlib import Path
 from typing import List, Type, Union
 
 from verdandi.benchmark import Benchmark
-from verdandi.utils import convert_name
+from verdandi.utils import make_name_importable
 
 
 class BenchmarkLoader:
-    method_prefix = "bench_"
-
     def load_benches_from_module(self, module: types.ModuleType) -> List[Type[Benchmark]]:
         benches: List[Type[Benchmark]] = []
 
@@ -25,8 +24,9 @@ class BenchmarkLoader:
     def load_benches_from_name(self, name: str) -> List[Type[Benchmark]]:
         try:
             module = importlib.import_module(name)
-        except (TypeError, ImportError):
+        except (TypeError, ImportError) as e:
             # Dotted filename or no such module
+            logging.warning(f"Cannot import module: {e}")
             return []
 
         return self.load_benches_from_module(module)
@@ -44,7 +44,7 @@ class BenchmarkLoader:
                 if entry.is_dir(follow_symlinks=False):
                     benches.extend(self.discover(start_dir=entry.path, pattern=pattern))
                 elif entry.is_file(follow_symlinks=False) and fnmatch(entry.name, pattern):
-                    path = convert_name(entry.path)
+                    path = make_name_importable(entry.path)
                     benches.extend(self.load_benches_from_name(path))
 
         return benches

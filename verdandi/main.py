@@ -1,5 +1,6 @@
 import argparse
 import importlib
+import logging
 import os
 import sys
 import types
@@ -8,7 +9,7 @@ from typing import List, Optional, Type, Union
 from verdandi.benchmark import Benchmark
 from verdandi.loader import BenchmarkLoader
 from verdandi.runner import BenchmarkRunner
-from verdandi.utils import convert_name, print_header
+from verdandi.utils import make_name_importable, print_header
 
 
 class BenchmarkProgram:
@@ -19,6 +20,8 @@ class BenchmarkProgram:
         bench_loader: Type[BenchmarkLoader] = BenchmarkLoader,
         bench_runner: Type[BenchmarkRunner] = BenchmarkRunner,
     ):
+        self.setup_logging()
+
         if isinstance(module, str):
             self.module = importlib.import_module(module)
         else:
@@ -38,6 +41,13 @@ class BenchmarkProgram:
 
         self.do_discovery()
         self.run_benchmarks()
+
+    def setup_logging(self) -> None:
+        logging.basicConfig(
+            level=logging.INFO,
+            format="(Verdandi) [%(asctime)s] %(levelname)s - %(message)s",
+            datefmt="%H:%M:%S",
+        )
 
     def parse_args(self, argv: List[str]) -> None:
         parser = self._get_arg_parser()
@@ -76,12 +86,12 @@ class BenchmarkProgram:
         if not self.benches:
             self.benches = loader.discover(start_dir=self.start_dir, pattern=self.pattern)
         elif self.benches:
-            bench_names = [convert_name(name) for name in self.benches]
+            bench_names = [make_name_importable(name) for name in self.benches]
             self.benches = [loader.load_benches_from_name(name) for name in bench_names]
         else:
             self.benches = loader.load_benches_from_module(self.module)
 
-        print(f"Collected {len(self.benches)} item{'s'[:len(self.benches)^1]}")
+        print(f"Collected {len(self.benches)} benchmark{'s'[:len(self.benches)^1]}")
 
     def run_benchmarks(self) -> None:
         runner = self.bench_runner(show_stdout=self.show_stdout)
