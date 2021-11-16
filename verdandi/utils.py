@@ -1,6 +1,29 @@
+from __future__ import annotations
+
 import os
 import shutil
+import sys
+from collections import UserList
+from contextlib import ContextDecorator
+from io import StringIO
 from typing import Any, List
+
+
+class StreamCapture(ContextDecorator, UserList):
+    """
+    Context manager that replaces the standard output with StringIO buffer
+    and keeps the output in a list
+    """
+
+    def __enter__(self) -> StreamCapture:
+        self._stdout = sys.stdout
+        sys.stdout = self._stringio = StringIO()
+        return self
+
+    def __exit__(self, *exc: Any) -> None:
+        self.extend(self._stringio.getvalue().splitlines())
+        del self._stringio
+        sys.stdout = self._stdout
 
 
 def make_name_importable(name: str) -> str:

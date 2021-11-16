@@ -1,12 +1,13 @@
+# type: ignore
+
 import argparse
 import importlib
 import logging
 import os
 import sys
 import types
-from typing import List, Optional, Type, Union
+from typing import Any, List, Optional, Type, Union
 
-from verdandi.benchmark import Benchmark
 from verdandi.loader import BenchmarkLoader
 from verdandi.runner import BenchmarkRunner
 from verdandi.utils import make_name_importable, print_header
@@ -19,7 +20,7 @@ class BenchmarkProgram:
         argv: Optional[List[str]] = None,
         bench_loader: Type[BenchmarkLoader] = BenchmarkLoader,
         bench_runner: Type[BenchmarkRunner] = BenchmarkRunner,
-    ):
+    ) -> None:
         self.setup_logging()
 
         if isinstance(module, str):
@@ -33,7 +34,6 @@ class BenchmarkProgram:
         self.bench_loader = bench_loader
         self.bench_runner = bench_runner
 
-        self.benches: List[Type[Benchmark]] = []
         self.parse_args(argv)
 
         print_header("Benchmark session started")
@@ -53,7 +53,7 @@ class BenchmarkProgram:
         parser = self._get_arg_parser()
         parser.parse_args(argv[1:], self)
 
-    def _get_arg_parser(self):
+    def _get_arg_parser(self) -> argparse.ArgumentParser:
         parser = argparse.ArgumentParser()
         parser.add_argument("benches", nargs="*", help="List of bench modules or files")
         parser.add_argument(
@@ -75,7 +75,7 @@ class BenchmarkProgram:
             "--pattern",
             dest="pattern",
             help="Filename pattern used in discovery (defaults to 'bench*.py')",
-            default="bench*.py",
+            default="bench_*.py",
         )
 
         return parser
@@ -101,6 +101,6 @@ class BenchmarkProgram:
         runner.run(self.benches)
 
 
-def main(*args, **kwargs):
+def main(*args: Any, **kwargs: Any) -> None:
     """Entry point for usage in scripts"""
     BenchmarkProgram(*args, **kwargs)

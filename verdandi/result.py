@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import List, Optional
+from typing import List
 
-from verdandi.utils import print_header
+from verdandi.utils import StreamCapture, print_header
 
 
 class ResultType(IntEnum):
@@ -17,13 +17,13 @@ class BenchmarkResult:
     rtype: ResultType
 
     # Memory taken in seconds
-    duration_sec: Optional[float]
+    duration_sec: float
 
     # Memory allocated in bytes
-    memory_diff: Optional[float]
+    memory_diff: float
 
     # Captured stdout
-    stdout: List[List[str]]
+    stdout: List[StreamCapture]
 
     def print_result(self) -> None:
         print(

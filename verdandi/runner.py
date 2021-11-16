@@ -1,31 +1,11 @@
-import sys
 import tracemalloc
-from collections import UserList
-from io import StringIO
 from statistics import mean
 from time import perf_counter
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Type
 
 from verdandi.benchmark import Benchmark
 from verdandi.result import BenchmarkResult, ResultType
-from verdandi.utils import flatten, print_header
-
-
-class StreamCapture(UserList):
-    """
-    Context manager that replaces the standard output with StringIO buffer
-    and keeps the output in a list
-    """
-
-    def __enter__(self) -> None:
-        self._stdout = sys.stdout
-        sys.stdout = self._stringio = StringIO()
-        return self
-
-    def __exit__(self, *args) -> None:
-        self.extend(self._stringio.getvalue().splitlines())
-        del self._stringio
-        sys.stdout = self._stdout
+from verdandi.utils import StreamCapture, flatten, print_header
 
 
 class BenchmarkRunner:
@@ -47,17 +27,17 @@ class BenchmarkRunner:
                 for method_result in class_result:
                     method_result.print_stdout()
 
-    def run_class(self, benchmark: Benchmark, iterations: int = 10) -> None:
-        benchmark = benchmark()
+    def run_class(self, benchmark_class: Type[Benchmark], iterations: int = 10) -> List[BenchmarkResult]:
+        benchmark = benchmark_class()
         methods = benchmark.collect_bench_methods()
 
-        results: List[BenchmarkResult] = []
+        results = []
 
         benchmark.setUpClass()
 
         for method in methods:
             stats: List[Dict[str, Any]] = []
-            outputs: List[str] = []
+            outputs: List[StreamCapture] = []
 
             benchmark.setUp()
 
@@ -89,7 +69,7 @@ class BenchmarkRunner:
 
         return results
 
-    def measure(self, func: Callable[..., Any]) -> BenchmarkResult:
+    def measure(self, func: Callable[..., Any]) -> Dict[str, Any]:
         tracemalloc.start()
 
         start_time = perf_counter()
