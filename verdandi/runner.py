@@ -1,18 +1,22 @@
 import tracemalloc
+from contextlib import redirect_stderr, redirect_stdout
+from io import StringIO
 from statistics import mean
 from time import perf_counter
 from typing import Any, Callable, Dict, List, Type
 
 from verdandi.benchmark import Benchmark
+from verdandi.cli import print_header
 from verdandi.result import BenchmarkResult, ResultType
-from verdandi.utils import StreamCapture, flatten, print_header
+from verdandi.utils import flatten
 
 
 class BenchmarkRunner:
     result_class = BenchmarkResult
 
-    def __init__(self, show_stdout: bool = False) -> None:
+    def __init__(self, show_stdout: bool = False, show_stderr: bool = True) -> None:
         self.show_stdout = show_stdout
+        self.show_stderr = show_stderr
 
     def run(self, benchmarks: List[Benchmark]) -> None:
         results: List[List[BenchmarkResult]] = []
@@ -27,6 +31,12 @@ class BenchmarkRunner:
                 for method_result in class_result:
                     method_result.print_stdout()
 
+        if self.show_stderr:
+            print_header("Captured stderr")
+            for class_result in results:
+                for method_result in class_result:
+                    method_result.print_stderr()
+
     def run_class(self, benchmark_class: Type[Benchmark], iterations: int = 10) -> List[BenchmarkResult]:
         benchmark = benchmark_class()
         methods = benchmark.collect_bench_methods()
@@ -37,17 +47,20 @@ class BenchmarkRunner:
 
         for method in methods:
             stats: List[Dict[str, Any]] = []
-            outputs: List[StreamCapture] = []
+            stdouts: List[str] = []
+            stderrs: List[str] = []
+            exceptions: List[Exception] = []
 
             benchmark.setUp()
 
             for _ in range(iterations):
                 benchmark.setUpIter()
 
-                with StreamCapture() as output:
+                with redirect_stdout(StringIO()) as stdout, redirect_stderr(StringIO()) as stderr:
                     iter_stats = self.measure(method)
 
-                outputs.append(output)
+                stdouts.append(stdout.getvalue())
+                stderrs.append(stderr.getvalue())
                 stats.append(iter_stats)
 
                 benchmark.tearDownIter()
@@ -57,12 +70,14 @@ class BenchmarkRunner:
             result = BenchmarkResult(
                 name=benchmark.__class__.__name__ + "." + method.__name__,
                 rtype=ResultType.OK,
-                stdout=outputs,
+                stdout=stdouts,
+                stderr=stderrs,
+                exceptions=exceptions,
                 duration_sec=mean([s["time"] for s in stats]),
                 # StatisticDiff is sorted from biggest to the smallest
                 memory_diff=mean([s["memory"][0].size_diff for s in stats]),
             )
-            result.print_result()
+            print(str(result))
             results.append(result)
 
         benchmark.tearDownClass()

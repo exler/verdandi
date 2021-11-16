@@ -8,9 +8,10 @@ import sys
 import types
 from typing import Any, List, Optional, Type, Union
 
+from verdandi.cli import print_header
 from verdandi.loader import BenchmarkLoader
 from verdandi.runner import BenchmarkRunner
-from verdandi.utils import make_name_importable, print_header
+from verdandi.utils import make_name_importable
 
 
 class BenchmarkProgram:
@@ -62,6 +63,13 @@ class BenchmarkProgram:
             dest="show_stdout",
             help="Show captured stdout after benchmarks are completed",
             action="store_true",
+        )
+        parser.add_argument(
+            "-e",
+            "--show-stderr",
+            dest="show_stderr",
+            help="Show captured stderr after benchmarks are completed",
+            action="store_false",
         )
         parser.add_argument(
             "-s",
