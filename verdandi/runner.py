@@ -74,7 +74,7 @@ class BenchmarkRunner:
 
                     exceptions.append(e)
                     rtype = ResultType.ERROR
-                    iter_stats = None
+                    iter_stats = None  # type: ignore
 
                 stdouts.append(stdout.getvalue())
                 stderrs.append(stderr.getvalue())

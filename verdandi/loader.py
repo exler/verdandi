@@ -31,7 +31,7 @@ class BenchmarkLoader:
 
         return self.load_benches_from_module(module)
 
-    def discover(self, start_dir: Union[Path, str], pattern="bench_*.py") -> List[Type[Benchmark]]:
+    def discover(self, start_dir: Union[Path, str], pattern: str = "bench_*.py") -> List[Type[Benchmark]]:
         """
         Find and return all benchmarks from the specified start directory,
         recursing into subsequent directories.

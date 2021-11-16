@@ -39,7 +39,7 @@ profile = "black"
 
 [tool.mypy]
 ignore_missing_imports = true
-exclude = "(tests|verdandi/__init__.py)"
+exclude = "(tests)"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
