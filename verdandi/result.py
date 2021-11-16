@@ -30,9 +30,9 @@ class BenchmarkResult:
     exceptions: List[Exception]
 
     def __str__(self) -> str:
-        return (
-            f"{self.name} - duration (sec): {round(self.duration_sec, 4)}, memory allocated (bytes): {self.memory_diff}"
-        )
+        msg = f"{self.name} ({self.rtype.name})"
+        msg += f" - duration (sec): {round(self.duration_sec, 4)}, memory allocated (bytes): {self.memory_diff}"
+        return msg
 
     def print_stdout(self) -> None:
         for iter_index, iter_stdout in enumerate(self.stdout):
@@ -49,3 +49,8 @@ class BenchmarkResult:
 
             print_header(f"{self.name}: iteration {iter_index}", padding_symbol="-")
             print(iter_stderr)
+
+    def print_exceptions(self) -> None:
+        for iter_index, iter_exc in enumerate(self.exceptions):
+            print_header(f"{self.name}: iteration {iter_index}", padding_symbol="-")
+            print(f"{iter_exc.__class__.__name__}: {str(iter_exc)}")

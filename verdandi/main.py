@@ -58,6 +58,13 @@ class BenchmarkProgram:
         parser = argparse.ArgumentParser()
         parser.add_argument("benches", nargs="*", help="List of bench modules or files")
         parser.add_argument(
+            "-ff",
+            "--failfast",
+            dest="failfast",
+            help="Break on first uncaught exception, otherwise exceptions will be captured",
+            action="store_true",
+        )
+        parser.add_argument(
             "-o",
             "--show-stdout",
             dest="show_stdout",
@@ -69,7 +76,7 @@ class BenchmarkProgram:
             "--show-stderr",
             dest="show_stderr",
             help="Show captured stderr after benchmarks are completed",
-            action="store_false",
+            action="store_true",
         )
         parser.add_argument(
             "-s",
@@ -102,7 +109,11 @@ class BenchmarkProgram:
         print(f"Collected {len(self.benches)} benchmark{'s'[:len(self.benches)^1]}")
 
     def run_benchmarks(self) -> None:
-        runner = self.bench_runner(show_stdout=self.show_stdout)
+        runner = self.bench_runner(
+            show_stdout=self.show_stdout,
+            show_stderr=self.show_stderr,
+            failfast=self.failfast,
+        )
 
         print()  # Use whitespace as separator here
 

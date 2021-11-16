@@ -14,9 +14,10 @@ from verdandi.utils import flatten
 class BenchmarkRunner:
     result_class = BenchmarkResult
 
-    def __init__(self, show_stdout: bool = False, show_stderr: bool = True) -> None:
+    def __init__(self, show_stdout: bool = False, show_stderr: bool = False, failfast: bool = False) -> None:
         self.show_stdout = show_stdout
         self.show_stderr = show_stderr
+        self.failfast = failfast
 
     def run(self, benchmarks: List[Benchmark]) -> None:
         results: List[List[BenchmarkResult]] = []
@@ -37,7 +38,14 @@ class BenchmarkRunner:
                 for method_result in class_result:
                     method_result.print_stderr()
 
-    def run_class(self, benchmark_class: Type[Benchmark], iterations: int = 10) -> List[BenchmarkResult]:
+        print_header("Exceptions")
+        for class_result in results:
+            for method_result in class_result:
+                method_result.print_exceptions()
+
+    def run_class(
+        self, benchmark_class: Type[Benchmark], iterations: int = 10, print_result: bool = True
+    ) -> List[BenchmarkResult]:
         benchmark = benchmark_class()
         methods = benchmark.collect_bench_methods()
 
@@ -50,14 +58,23 @@ class BenchmarkRunner:
             stdouts: List[str] = []
             stderrs: List[str] = []
             exceptions: List[Exception] = []
+            rtype = ResultType.OK
 
             benchmark.setUp()
 
             for _ in range(iterations):
                 benchmark.setUpIter()
 
-                with redirect_stdout(StringIO()) as stdout, redirect_stderr(StringIO()) as stderr:
-                    iter_stats = self.measure(method)
+                try:
+                    with redirect_stdout(StringIO()) as stdout, redirect_stderr(StringIO()) as stderr:
+                        iter_stats = self.measure(method)
+                except Exception as e:
+                    if self.failfast:
+                        raise e
+
+                    exceptions.append(e)
+                    rtype = ResultType.ERROR
+                    iter_stats = None
 
                 stdouts.append(stdout.getvalue())
                 stderrs.append(stderr.getvalue())
@@ -69,15 +86,17 @@ class BenchmarkRunner:
 
             result = BenchmarkResult(
                 name=benchmark.__class__.__name__ + "." + method.__name__,
-                rtype=ResultType.OK,
+                rtype=rtype,
                 stdout=stdouts,
                 stderr=stderrs,
                 exceptions=exceptions,
-                duration_sec=mean([s["time"] for s in stats]),
+                duration_sec=mean([s["time"] for s in stats]) if rtype != ResultType.ERROR else 0,
                 # StatisticDiff is sorted from biggest to the smallest
-                memory_diff=mean([s["memory"][0].size_diff for s in stats]),
+                memory_diff=mean([s["memory"][0].size_diff for s in stats]) if rtype != ResultType.ERROR else 0,
             )
-            print(str(result))
+            if print_result:
+                print(str(result))
+
             results.append(result)
 
         benchmark.tearDownClass()
