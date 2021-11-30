@@ -5,8 +5,8 @@ from statistics import mean
 from time import perf_counter
 from typing import Any, Callable, List, Type
 
+from verdandi import cli
 from verdandi.benchmark import Benchmark
-from verdandi.cli import print_header
 from verdandi.result import BenchmarkResult, IterationStats, ResultType
 from verdandi.utils import flatten
 
@@ -26,26 +26,26 @@ class BenchmarkRunner:
             result = self.run_class(benchmark)
             results.append(result)
 
+        cli.print_results_as_table(flatten(results))
+
         if self.show_stdout:
-            print_header("Captured stdout")
+            cli.print_header("Captured stdout")
             for class_result in results:
                 for method_result in class_result:
-                    method_result.print_stdout()
+                    cli.print_stdout(method_result)
 
         if self.show_stderr:
-            print_header("Captured stderr")
+            cli.print_header("Captured stderr")
             for class_result in results:
                 for method_result in class_result:
-                    method_result.print_stderr()
+                    cli.print_stderr(method_result)
 
-        print_header("Exceptions")
+        cli.print_header("Exceptions")
         for class_result in results:
             for method_result in class_result:
-                method_result.print_exceptions()
+                cli.print_exceptions(method_result)
 
-    def run_class(
-        self, benchmark_class: Type[Benchmark], iterations: int = 10, print_result: bool = True
-    ) -> List[BenchmarkResult]:
+    def run_class(self, benchmark_class: Type[Benchmark], iterations: int = 10) -> List[BenchmarkResult]:
         benchmark = benchmark_class()
         methods = benchmark.collect_bench_methods()
 
@@ -91,11 +91,8 @@ class BenchmarkRunner:
                 stderr=stderrs,
                 exceptions=exceptions,
                 duration_sec=mean([s.duration_sec for s in stats]) if rtype != ResultType.ERROR else 0,
-                memory_diff=mean([s.memory_diff for s in stats]) if rtype != ResultType.ERROR else 0,
+                memory_diff=int(mean([s.memory_diff for s in stats])) if rtype != ResultType.ERROR else 0,
             )
-            if print_result:
-                print(str(result))
-
             results.append(result)
 
         benchmark.tearDownClass()
@@ -104,6 +101,7 @@ class BenchmarkRunner:
 
     def measure(self, func: Callable[..., Any]) -> IterationStats:
         def filter_snapshot(snapshot: tracemalloc.Snapshot) -> tracemalloc.Snapshot:
+            """Filters out traces not measured by benchmark"""
             return snapshot.filter_traces(
                 (
                     tracemalloc.Filter(False, "<frozen importlib._bootstrap>"),  # ignore imports
