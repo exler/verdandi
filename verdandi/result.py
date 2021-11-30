@@ -10,17 +10,26 @@ class ResultType(IntEnum):
     ERROR = 2
 
 
+@dataclass(eq=True, order=False, frozen=True)
+class IterationStats:
+    # Time taken in seconds
+    duration_sec: float
+
+    # Memory allocated in bytes
+    memory_diff: int
+
+
 @dataclass(eq=False, order=False, frozen=True)
 class BenchmarkResult:
     name: str
 
     rtype: ResultType
 
-    # Memory taken in seconds
+    # Time taken in seconds
     duration_sec: float
 
     # Memory allocated in bytes
-    memory_diff: float
+    memory_diff: int
 
     # Captured stream outputs
     stdout: List[str]

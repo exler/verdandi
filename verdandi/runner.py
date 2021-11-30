@@ -3,11 +3,11 @@ from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO
 from statistics import mean
 from time import perf_counter
-from typing import Any, Callable, Dict, List, Type
+from typing import Any, Callable, List, Type
 
 from verdandi.benchmark import Benchmark
 from verdandi.cli import print_header
-from verdandi.result import BenchmarkResult, ResultType
+from verdandi.result import BenchmarkResult, IterationStats, ResultType
 from verdandi.utils import flatten
 
 
@@ -54,7 +54,7 @@ class BenchmarkRunner:
         benchmark.setUpClass()
 
         for method in methods:
-            stats: List[Dict[str, Any]] = []
+            stats: List[IterationStats] = []
             stdouts: List[str] = []
             stderrs: List[str] = []
             exceptions: List[Exception] = []
@@ -90,9 +90,8 @@ class BenchmarkRunner:
                 stdout=stdouts,
                 stderr=stderrs,
                 exceptions=exceptions,
-                duration_sec=mean([s["time"] for s in stats]) if rtype != ResultType.ERROR else 0,
-                # StatisticDiff is sorted from biggest to the smallest
-                memory_diff=mean([s["memory"][0].size_diff for s in stats]) if rtype != ResultType.ERROR else 0,
+                duration_sec=mean([s.duration_sec for s in stats]) if rtype != ResultType.ERROR else 0,
+                memory_diff=mean([s.memory_diff for s in stats]) if rtype != ResultType.ERROR else 0,
             )
             if print_result:
                 print(str(result))
@@ -103,7 +102,17 @@ class BenchmarkRunner:
 
         return results
 
-    def measure(self, func: Callable[..., Any]) -> Dict[str, Any]:
+    def measure(self, func: Callable[..., Any]) -> IterationStats:
+        def filter_snapshot(snapshot: tracemalloc.Snapshot) -> tracemalloc.Snapshot:
+            return snapshot.filter_traces(
+                (
+                    tracemalloc.Filter(False, "<frozen importlib._bootstrap>"),  # ignore imports
+                    tracemalloc.Filter(False, "<unknown>"),  # ignore empty tracebacks
+                    tracemalloc.Filter(False, __file__),  # ignore traces of this module
+                    tracemalloc.Filter(False, tracemalloc.__file__),  # ignore traces of the tracemalloc module
+                )
+            )
+
         tracemalloc.start()
 
         start_time = perf_counter()
@@ -114,11 +123,14 @@ class BenchmarkRunner:
         stop_snapshot = tracemalloc.take_snapshot()
         stop_time = perf_counter()
 
-        time_taken = stop_time - start_time
-        memory_diff = stop_snapshot.compare_to(start_snapshot, "lineno")
-
         tracemalloc.stop()
 
-        stats = {"time": time_taken, "memory": memory_diff}
+        start_snapshot = filter_snapshot(start_snapshot)
+        stop_snapshot = filter_snapshot(stop_snapshot)
 
-        return stats
+        time_taken = stop_time - start_time
+
+        # StatisticDiff is sorted from biggest to the smallest
+        memory_diff = stop_snapshot.compare_to(start_snapshot, "filename")[0].size_diff
+
+        return IterationStats(time_taken, memory_diff)
