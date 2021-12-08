@@ -1,4 +1,3 @@
-import tracemalloc
 from contextlib import redirect_stderr, redirect_stdout
 from io import StringIO
 from statistics import mean
@@ -91,7 +90,6 @@ class BenchmarkRunner:
                 stderr=stderrs,
                 exceptions=exceptions,
                 duration_sec=mean([s.duration_sec for s in stats]) if rtype != ResultType.ERROR else 0,
-                memory_diff=int(mean([s.memory_diff for s in stats])) if rtype != ResultType.ERROR else 0,
             )
             results.append(result)
 
@@ -100,35 +98,10 @@ class BenchmarkRunner:
         return results
 
     def measure(self, func: Callable[..., Any]) -> IterationStats:
-        def filter_snapshot(snapshot: tracemalloc.Snapshot) -> tracemalloc.Snapshot:
-            """Filters out traces not measured by benchmark"""
-            return snapshot.filter_traces(
-                (
-                    tracemalloc.Filter(False, "<frozen importlib._bootstrap>"),  # ignore imports
-                    tracemalloc.Filter(False, "<unknown>"),  # ignore empty tracebacks
-                    tracemalloc.Filter(False, __file__),  # ignore traces of this module
-                    tracemalloc.Filter(False, tracemalloc.__file__),  # ignore traces of the tracemalloc module
-                )
-            )
-
-        tracemalloc.start()
-
         start_time = perf_counter()
-        start_snapshot = tracemalloc.take_snapshot()
-
         func()
-
-        stop_snapshot = tracemalloc.take_snapshot()
         stop_time = perf_counter()
-
-        tracemalloc.stop()
-
-        start_snapshot = filter_snapshot(start_snapshot)
-        stop_snapshot = filter_snapshot(stop_snapshot)
 
         time_taken = stop_time - start_time
 
-        # StatisticDiff is sorted from biggest to the smallest
-        memory_diff = stop_snapshot.compare_to(start_snapshot, "filename")[0].size_diff
-
-        return IterationStats(time_taken, memory_diff)
+        return IterationStats(time_taken)

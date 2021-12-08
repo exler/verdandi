@@ -13,9 +13,6 @@ class IterationStats:
     # Time taken in seconds
     duration_sec: float
 
-    # Memory allocated in bytes
-    memory_diff: int
-
 
 @dataclass(eq=False, order=False, frozen=True)
 class BenchmarkResult:
@@ -26,9 +23,6 @@ class BenchmarkResult:
     # Time taken in seconds
     duration_sec: float
 
-    # Memory allocated in bytes
-    memory_diff: int
-
     # Captured stream outputs
     stdout: List[str]
     stderr: List[str]
@@ -37,4 +31,4 @@ class BenchmarkResult:
     exceptions: List[Exception]
 
     def __str__(self) -> str:
-        return f"{self.name} ({self.rtype.name}, duration_sec={self.duration_sec:.4f}, memory_diff={self.memory_diff})"
+        return f"{self.name} ({self.rtype.name}, duration_sec={self.duration_sec:.4f})"

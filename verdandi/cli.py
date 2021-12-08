@@ -38,7 +38,7 @@ def print_results_as_table(results: Iterable[BenchmarkResult]) -> None:
         s += str(row[-1])
         return s
 
-    headers = ["Name", "Result", "Duration (in seconds)", "Memory allocated (in bytes)"]
+    headers = ["Name", "Result", "Duration (in seconds)"]
     col_width = max(len(result.name) for result in results) + 2
 
     print_header("", padding_symbol="-")
@@ -46,7 +46,7 @@ def print_results_as_table(results: Iterable[BenchmarkResult]) -> None:
     print_header("", padding_symbol="-")
 
     for r in results:
-        print(format_table_row([r.name, r.rtype.name, f"{r.duration_sec:.4f}", str(r.memory_diff)], col_width))
+        print(format_table_row([r.name, r.rtype.name, f"{r.duration_sec:.4f}"], col_width))
 
     print_header("", padding_symbol="-")
     print()  # Empty line
